@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+
+      # Local Supabase (Postgres, Auth, Realtime, Storage, Mailpit) for the integration tests.
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - run: supabase start -x studio,edge-runtime,logflare,vector,supavisor,imgproxy
+      - name: Write local test configuration (local demo keys only, not secrets)
+        run: |
+          eval "$(supabase status -o env)"
+          cat > backend/.env <<ENV
+          SUPABASE_URL=$API_URL
+          SUPABASE_ANON_KEY=$ANON_KEY
+          SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY
+          FRONTEND_URL=http://localhost:5173
+          SMTP_HOST=127.0.0.1
+          SMTP_PORT=54325
+          CRON_SECRET=ci-only-cron-secret-0123456789abcdef
+          ENABLE_WORKER=false
+          ENV
+          cat > frontend/.env <<ENV
+          VITE_SUPABASE_URL=$API_URL
+          VITE_SUPABASE_ANON_KEY=$ANON_KEY
+          ENV
+      - run: npm test
+
+      - name: Browser tests
+        run: |
+          npx playwright install --with-deps chromium
+          npm run seed:dev
+          npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: frontend/test-results

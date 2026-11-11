@@ -1,0 +1,35 @@
+{
+  "name": "mediconnect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Doctor appointment booking and live chat platform (React + Express + Supabase)",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace backend & npm run dev --workspace frontend",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "build": "npm run build --workspace backend && npm run build --workspace frontend",
+    "lint": "npm run lint --workspace backend && npm run lint --workspace frontend",
+    "typecheck": "npm run typecheck --workspace backend && npm run typecheck --workspace frontend",
+    "test": "npm run test --workspace backend && npm run test --workspace frontend",
+    "test:e2e": "npm run test:e2e --workspace frontend",
+    "seed:dev": "npm run seed:dev --workspace backend",
+    "make-admin": "npm run make-admin --workspace backend --",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push"
+  },
+  "devDependencies": {
+    "supabase": "^2.121.0"
+  },
+  "dependencies": {
+    "@daily-co/daily-js": "^0.94.0",
+    "@daily-co/daily-react-hooks": "^0.5.0"
+  }
+}
